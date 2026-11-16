@@ -1,0 +1,29 @@
+{
+  "name": "chess-ygp-assist",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.22.3 <25",
+    "npm": ">=12.2.2 <13"
+  },
+  "scripts": {
+    "test": "sh tools/run-node.sh --test",
+    "build": "sh tools/run-node.sh tools/build.mjs",
+    "browser": "sh tools/run-node.sh tools/browser-session.mjs",
+    "verify:browser": "sh tools/run-node.sh tools/verify-browser.mjs",
+    "audit:deps": "sh tools/run-node.sh tools/audit-deps.mjs",
+    "verify:bridge": "sh tools/run-node.sh tools/verify-bridge.mjs",
+    "docs:media": "sh tools/run-node.sh tools/capture-media.mjs"
+  },
+  "devDependencies": {
+    "camoufox": "0.5.9",
+    "esbuild": "0.28.2",
+    "playwright-core": "1.62.1"
+  },
+  "dependencies": {
+    "chess.js": "1.4.0",
+    "stockfish": "19.0.1"
+  },
+  "packageManager": "npm@12.2.2"
+}

@@ -1,0 +1,75 @@
+<!doctype html><html><head><meta charset="utf-8"><script src="/chess-core.js"></script></head><body style="margin:0">
+<canvas id="game" width="1298" height="900" style="display:block;width:692px;height:480px"></canvas><script>
+const fixtureGame=new URLSearchParams(location.search).get('game')||'Chess';
+window.P={GAME:fixtureGame,TYPE:fixtureGame.toLowerCase(),CODE_RELEASE:'20260722',PLAYER:'Fixture Player'};
+const chess=new FixtureChess();
+const opening=['e4','e5','Nf3','Nc6','Bb5','a6','Ba4','Nf6','O-O','Be7','Re1','b5','Bb3','d6','c3','O-O','h3','Nb8','d4','Nbd7'];
+for(const move of opening)chess.move(move);
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const board=document.createElement('canvas');board.width=board.height=720;
+const b=board.getContext('2d');
+let topRow=4,selected=null;
+let wheelCount=0,lobby=false,emptyFirstRow=false,flipped=false;
+let logicalSize=688,tile=80;
+const atlas=new Image();atlas.width=480;atlas.height=1152;
+atlas.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="480" height="1152">'+Array.from({length:12},(_,row)=>'<rect x="8" y="'+(row*96+8)+'" width="80" height="80" fill="'+(row<6?'white':'black')+'"/>').join('')+'</svg>');
+function notation(move){
+ if(move.flags.includes('k'))return 'O-O';
+ if(move.flags.includes('q'))return 'O-O-O';
+ return (move.piece==='p'?'':move.piece.toUpperCase())+move.from+(move.captured?'x':'-')+move.to+(move.promotion?'='+move.promotion.toUpperCase():'');
+}
+function paint(){
+ if(!atlas.complete||!atlas.naturalWidth)return;
+ ctx.fillStyle='#193e68';ctx.fillRect(0,0,1298,900);
+ if(lobby)return;
+ // The native client may render history before copying the board to #game.
+ ctx.fillStyle='#193e68';ctx.fillRect(800,20,450,260);
+ ctx.font='20px sans-serif';ctx.fillStyle='white';ctx.fillText('Fixture Player',flipped?620:215,73);
+ const moves=chess.history({verbose:true}),last=Math.ceil(moves.length/2);
+ for(let row=0;row<7&&topRow+row<=last;row++){
+  const number=topRow+row,y=54+row*24;
+  ctx.fillText(number+'.',843,y+1);ctx.fillText(number+'.',842,y);
+  const white=moves[(number-1)*2],black=moves[(number-1)*2+1];
+  if(white)ctx.fillText(notation(white),940,y);
+  if(black)ctx.fillText(notation(black),1119,y);
+ }
+ if(last===0&&emptyFirstRow){ctx.fillText('1.',843,55);ctx.fillText('1.',842,54);}
+ b.fillStyle='#393c38';b.fillRect(0,0,688,688);
+ b.font='14px sans-serif';b.fillStyle='white';
+ for(let file=0;file<8;file++)b.fillText((flipped?'HGFEDCBA':'ABCDEFGH')[file],24+file*tile+36,logicalSize-8);
+ for(let row=0;row<8;row++)for(let col=0;col<8;col++){
+  b.fillStyle=(row+col)%2?'#829374':'#e1e8d9';b.fillRect(24+col*tile,24+row*tile,tile,tile);
+  const square='abcdefgh'[col]+(8-row),piece=chess.get(square);
+ }
+ ctx.drawImage(board,0,0,logicalSize,logicalSize,50,157,logicalSize,logicalSize);
+ for(let row=0;row<8;row++)for(let col=0;col<8;col++){
+  const piece=chess.get('abcdefgh'[flipped?7-col:col]+(flipped?row+1:8-row));
+  if(piece){const sprite='pnbrqk'.indexOf(piece.type)+(piece.color==='w'?0:6);ctx.drawImage(atlas,0,sprite*96,96,96,74+col*tile,181+row*tile,tile,tile);}
+ }
+}
+window.addEventListener('wheel',event=>{
+ event.preventDefault();event.stopPropagation();const last=Math.ceil(chess.history().length/2);
+ wheelCount++;
+ if(last<=7)return; // A short native list has no scroll transition or repaint.
+ topRow=Math.max(1,Math.min(Math.max(1,last-6),topRow+(event.deltaY>0?3:-3)));paint();
+},{passive:false,capture:true});
+canvas.addEventListener('click',event=>{
+ const r=canvas.getBoundingClientRect(),x=(event.clientX-r.x)*canvas.width/r.width,y=(event.clientY-r.y)*canvas.height/r.height;
+ if(x<74||x>=714||y<181||y>=821)return;
+ const square='abcdefgh'[Math.floor((x-74)/80)]+(8-Math.floor((y-181)/80));
+ if(!selected){selected=square;return;}
+ try{chess.move({from:selected,to:square});topRow=Math.max(1,Math.ceil(chess.history().length/2)-6);}catch{}
+ selected=null;paint();
+});
+window.addEventListener('resize',paint);
+window.fixture={
+ fen:()=>chess.fen(),plies:()=>chess.history().length,paint,wheels:()=>wheelCount,
+ load:(plies,first=1)=>{chess.reset();for(const move of opening.slice(0,plies))chess.move(move);topRow=first;lobby=false;paint();},
+ cycle:()=>{chess.reset();for(const move of ['Nf3','Nf6','Ng1','Ng8'])chess.move(move);topRow=1;lobby=false;paint();},
+ tick:()=>{ctx.save();ctx.beginPath();ctx.rect(20,41,331,94);ctx.clip();ctx.fillStyle='#193e68';ctx.fillRect(0,0,1298,900);ctx.restore();},
+ zoom:()=>{logicalSize=720;tile=84;board.width=board.height=768;chess.reset();topRow=1;lobby=false;paint();},
+ rematch:()=>{chess.reset();topRow=1;lobby=false;emptyFirstRow=true;flipped=true;selected=null;paint();},
+ lobby:()=>{lobby=true;paint();},
+};
+atlas.onload=paint;paint();
+</script></body></html>
