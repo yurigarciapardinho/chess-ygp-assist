@@ -5,22 +5,25 @@ import { homedir } from 'node:os';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { registerControls, allowed, harvest } from './browser-control.mjs';
+import { navigateAtStartup } from './startup-navigation.mjs';
 
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const state=resolve(homedir(),'.local/share/chess-ygp-assist');
 const profile=resolve(state,'profiles/flyordie');
 await mkdir(profile,{recursive:true,mode:0o700});
-const context=await Camoufox({browser:'158.0.1-beta.41',persistent_context:true,user_data_dir:profile,headless:false,os:'linux',locale:'pt-BR',main_world_eval:true,acceptDownloads:false});
+const context=await Camoufox({browser:'158.0.1-beta.41',persistent_context:true,user_data_dir:profile,headless:false,os:'linux',locale:'pt-BR',main_world_eval:true,acceptDownloads:false,ignoreHTTPSErrors:false});
 const bundle=await readFile(resolve(root,'dist/chess-assist.js'),'utf8');
 await context.addInitScript('mw:'+bundle);
 await registerControls(context);
 let page=context.pages()[0]||await context.newPage();
 const safeUrl=url=>{try{const u=new URL(url);return u.origin+u.pathname;}catch{return 'about:blank';}};
 console.log(JSON.stringify({event:'browser-open',profile,browser:'Camoufox 158.0.1-beta.41',runtime:process.version}));
-if(!allowed(page.mainFrame()))await page.goto('https://www.flyordie.com/chess',{waitUntil:'domcontentloaded',timeout:60000});
-else await page.reload({waitUntil:'domcontentloaded'});
+const navigationReady=await navigateAtStartup(async()=>{
+  if(!allowed(page.mainFrame()))await page.goto('https://www.flyordie.com/chess',{waitUntil:'domcontentloaded',timeout:60000});
+  else await page.reload({waitUntil:'domcontentloaded'});
+});
 await page.bringToFront();
-console.log(JSON.stringify({event:'ready',pages:context.pages().map(p=>safeUrl(p.url()))}));
+console.log(JSON.stringify({event:navigationReady?'ready':'navigation-blocked',pages:context.pages().map(p=>safeUrl(p.url()))}));
 const rl=createInterface({input:process.stdin,crlfDelay:Infinity});
 let queue=Promise.resolve();
 async function dispatch(command){

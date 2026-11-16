@@ -47,3 +47,11 @@ Referências para acompanhar versões:
 ## Relatar um problema
 
 Descreva versão, ambiente, passos de reprodução e impacto. Remova cookies, tokens, senhas e nomes de jogadores dos anexos. Para informações de origem e licenças, consulte [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+
+## Certificados HTTPS
+
+O launcher mantém a validação de certificados ativa. Um erro como `SEC_ERROR_UNKNOWN_ISSUER` interrompe a navegação, mas mantém a janela aberta para conferir o aviso. A sessão registra `navigation-blocked`, em vez de anunciar que está pronta.
+
+Redes de empresas e instituições podem substituir certificados por uma autoridade privada de inspeção HTTPS. Nesse caso, obtenha a CA oficial e suas instruções de instalação com a TI. Não importe certificados obtidos da própria conexão que falhou ou de fontes desconhecidas. Outra rede autorizada pode ajudar a distinguir um problema local de um problema do servidor.
+
+O teste `npm run verify:tls` requer OpenSSL e cria um servidor HTTPS local com certificado temporário não confiável. Ele verifica que o navegador recusa a conexão, não envia a requisição HTTP e mantém a janela aberta. O teste não altera o armazenamento de CAs do sistema nem usa o perfil de login.

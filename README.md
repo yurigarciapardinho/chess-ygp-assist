@@ -83,3 +83,7 @@ dist/         Distribuições geradas
 - [Origem e licenças dos componentes](THIRD_PARTY_NOTICES.md)
 
 Baseado no [Chess Assist, de ThatKidGlitchy](https://github.com/ThatKidGlitchy/chess-hacks), com adaptação para FlyOrDie/launcher Firefox. O motor deriva de [Stockfish.js](https://github.com/nmrugg/stockfish.js) e [Stockfish](https://github.com/official-stockfish/Stockfish).
+
+## Problemas de conexão HTTPS
+
+Se aparecer `SEC_ERROR_UNKNOWN_ISSUER`, o navegador não conseguiu validar o certificado apresentado pela conexão. A janela continua aberta para inspecionar o aviso. Em redes com inspeção HTTPS, solicite à TI a CA oficial e a configuração do perfil do navegador. Após corrigir a conexão, recarregue a página. Veja [segurança e certificados](docs/SECURITY.md#certificados-https).

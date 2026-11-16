@@ -14,7 +14,8 @@
     "verify:browser": "sh tools/run-node.sh tools/verify-browser.mjs",
     "audit:deps": "sh tools/run-node.sh tools/audit-deps.mjs",
     "verify:bridge": "sh tools/run-node.sh tools/verify-bridge.mjs",
-    "docs:media": "sh tools/run-node.sh tools/capture-media.mjs"
+    "docs:media": "sh tools/run-node.sh tools/capture-media.mjs",
+    "verify:tls": "sh tools/run-node.sh tools/verify-launcher-tls.mjs"
   },
   "devDependencies": {
     "camoufox": "0.5.9",
